@@ -993,12 +993,14 @@ function whenResourceOnline(endpoint: string, checkEvery: number, notifyOnline: 
     let check = (): void => {
         // Note:
         // We do not fire a try immediately after the disconnection as most developers will expect.
-        _fetch(endpointHTTP, fetchOptions).then(() => {
-            notifyOnline(tries);
-        }).catch(() => { // on network failures.
-            // if (err !== undefined && err.toString() !== "TypeError: Failed to fetch") {
-            //     console.log(err);
-            // }
+        _fetch(endpointHTTP, fetchOptions).then((response) => {
+            if (response.ok) {
+                notifyOnline(tries);
+           } else {
+                return Promise.reject(`${response.status}:${response.statusText}`);
+           }
+        }).catch((err) => {
+            console.log(err);
             tries++;
             setTimeout(() => {
                 check();
