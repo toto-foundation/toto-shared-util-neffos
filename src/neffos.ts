@@ -991,20 +991,23 @@ function whenResourceOnline(endpoint: string, checkEvery: number, notifyOnline: 
     const fetchOptions = { method: 'HEAD', mode: 'no-cors' };
 
     let check = (): void => {
+        const retry = () => {
+            tries++;
+            setTimeout(() => {
+                check();
+            }, checkEvery);
+        }
+
         // Note:
         // We do not fire a try immediately after the disconnection as most developers will expect.
         _fetch(endpointHTTP, fetchOptions).then((response) => {
             if (response.ok) {
                 notifyOnline(tries);
-           } else {
-                return Promise.reject(`${response.status}:${response.statusText}`);
-           }
+            } else {
+                retry();
+            }
         }).catch((err) => {
-            console.log(err);
-            tries++;
-            setTimeout(() => {
-                check();
-            }, checkEvery)
+            retry();
         });
     };
 
